@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Spin Wheel Project</title>
+
+<style>
+body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#1e1e1e;
+    font-family:Arial;
+}
+
+.wrapper{
+    position:relative;
+}
+
+canvas{
+    border-radius:50%;
+    border:8px solid white;
+    transition: transform 4s ease-out;
+}
+
+.pointer{
+    position:absolute;
+    right:-10px;
+    top:50%;
+    transform:translateY(-50%);
+    width:0;
+    height:0;
+    border-top:25px solid transparent;
+    border-bottom:25px solid transparent;
+    border-right:50px solid #00ff99;
+    z-index:10;
+}
+
+.spin-btn{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:black;
+    color:white;
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    font-weight:bold;
+    font-size:18px;
+    border:3px solid white;
+}
+
+#result{
+    position:absolute;
+    bottom:-80px;
+    left:50%;
+    transform:translateX(-50%);
+    color:white;
+    font-size:24px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+<div class="pointer"></div>
+
+<canvas id="wheel" width="400" height="400"></canvas>
+
+<div class="spin-btn" onclick="spin()">SPIN</div>
+
+<div id="result"></div>
+
+</div>
+
+<!-- AUDIO FILES -->
+<audio id="spinSound" src="spin.mpeg" loop></audio>
+<audio id="clickSound" src="click.mp3"></audio>
+
+
+<script>
+
+let canvas = document.getElementById("wheel");
+let ctx = canvas.getContext("2d");
+
+let clickSound = document.getElementById("clickSound");
+let spinSound = document.getElementById("spinSound");
+
+let items = [
+"Better Luck Next Time",
+"Oops",
+"Won 10",
+"Won 1000",
+"Better Luck Next Time",
+"Won 10000",
+"Oops",
+"Won 500"
+];
+
+let segments = items.length;
+let angle = 2 * Math.PI / segments;
+let rotation = 0;
+
+let colors = ["#FF0000", "#36a2eb", "#4CAF50", "#FFC107"];
+
+function drawWheel(){
+    for(let i=0;i<segments;i++){
+        ctx.beginPath();
+        ctx.moveTo(200,200);
+        ctx.arc(200,200,200,i*angle,(i+1)*angle);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(200,200);
+        ctx.rotate(i*angle + angle/2);
+
+        ctx.fillStyle="white";
+        ctx.font="bold 13px Arial";
+        ctx.textAlign="center";
+        ctx.fillText(items[i],130,5);
+
+        ctx.restore();
+    }
+}
+
+drawWheel();
+
+function spin(){
+
+    clickSound.currentTime = 0;
+    clickSound.play();
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    let fixedIndexes = [0,1,4,6]; 
+
+    let selectedIndex = fixedIndexes[Math.floor(Math.random()*fixedIndexes.length)];
+
+    let segmentAngle = 360 / segments;
+
+    let finalAngle = 360 - (selectedIndex * segmentAngle) - (segmentAngle/2);
+
+    canvas.style.transition = "none";
+    canvas.style.transform = `rotate(0deg)`;
+
+    setTimeout(() => {
+        canvas.style.transition = "transform 4s ease-out";
+        canvas.style.transform = `rotate(${360*5 + finalAngle}deg)`;
+    },50);
+
+    setTimeout(()=>{
+        spinSound.pause();
+        document.getElementById("result").innerText = items[selectedIndex];
+    },4000);
+}
+
+</script>
+</body>
+</html>
